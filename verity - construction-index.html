@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Verity Build</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    font-family:'Segoe UI',sans-serif;
+    background:#1a1f16;
+    color:#d4d9cc;
+    min-height:100vh;
+    max-width:430px;
+    margin:0 auto;
+    position:relative;
+    overflow-x:hidden;
+  }
+  .screen{display:none;padding-bottom:80px;min-height:100vh;}
+  .screen.active{display:block;}
+
+  /* CAMO TEXTURE OVERLAY */
+  body::before{
+    content:'';
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background-image:
+      radial-gradient(ellipse 60px 40px at 10% 15%, rgba(44,62,80,0.35) 0%, transparent 100%),
+      radial-gradient(ellipse 80px 60px at 70% 5%, rgba(30,40,20,0.5) 0%, transparent 100%),
+      radial-gradient(ellipse 50px 70px at 40% 35%, rgba(50,65,35,0.4) 0%, transparent 100%),
+      radial-gradient(ellipse 90px 50px at 85% 40%, rgba(44,62,80,0.3) 0%, transparent 100%),
+      radial-gradient(ellipse 70px 80px at 20% 60%, rgba(30,40,20,0.45) 0%, transparent 100%),
+      radial-gradient(ellipse 60px 60px at 60% 70%, rgba(50,65,35,0.35) 0%, transparent 100%),
+      radial-gradient(ellipse 100px 50px at 90% 80%, rgba(44,62,80,0.3) 0%, transparent 100%),
+      radial-gradient(ellipse 80px 90px at 5% 85%, rgba(30,40,20,0.4) 0%, transparent 100%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .screen>*{position:relative;z-index:1;}
+
+  /* TAB BAR */
+  .tabbar{
+    position:fixed;
+    bottom:0;left:50%;
+    transform:translateX(-50%);
+    width:100%;
+    max-width:430px;
+    background:linear-gradient(180deg,#1c2218 0%,#111510 100%);
+    border-top:2px solid #2c3e50;
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding:6px 0 10px;
+    z-index:999;
+    box-shadow:0 -4px 20px rgba(0,0,0,0.6);
+  }
+  .tab{
+    background:none;
+    border:none;
+    color:#6b7a5e;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    cursor:pointer;
+    padding:4px 8px;
+    border-radius:10px;
+    transition:all 0.2s;
+    min-width:44px;
+  }
+  .tab.tabon{color:#e67e22;}
+  .tab.tabon .tab-icon{text-shadow:0 0 10px rgba(230,126,34,0.5);}
+  .tab-icon{font-size:19px;line-height:1;margin-bottom:2px;}
+  .tab-label{font-size:9px;font-weight:600;letter-spacing:0.3px;text-transform:uppercase;}
+
+  /* HEADER */
+  .header{
+    background:linear-gradient(135deg,#1c2a1a 0%,#2c3e50 100%);
+    padding:50px 20px 20px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:3px solid #e67e22;
+  }
+  .header::after{
+    content:'';
+    position:absolute;
+    top:-20px;right:-30px;
+    width:120px;height:120px;
+    background:rgba(230,126,34,0.08);
+    border-radius:50%;
+  }
+  .header-sub{
+    background:#2c3e50;
+    padding:40px 20px 16px;
+    border-bottom:2px solid #e67e22;
+  }
+  .wordmark{
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:1px;
+    color:#fff;
+  }
+  .wordmark span{color:#e67e22;}
+  .header-title{font-size:14px;color:#8fa080;font-weight:500;margin-top:3px;}
+  .page-title{
+    font-size:20px;
+    font-weight:700;
+    color:#fff;
+    margin:0;
+  }
+  .page-sub{font-size:12px;color:#8fa080;margin-top:3px;}
+
+  /* CARDS */
+  .card{
+    background:linear-gradient(135deg,#1e2a1c 0%,#243020 100%);
+    border:1px solid #2c3e50;
+    border-radius:14px;
+    margin:12px 16px;
+    padding:16px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.4);
+  }
+  .card-orange{border-color:#e67e22;border-left:4px solid #e67e22;}
+
+  /* BUTTONS */
+  .btn-primary{
+    background:linear-gradient(135deg,#e67e22,#d35400);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:14px 24px;
+    font-size:15px;
+    font-weight:700;
+    width:100%;
+    cursor:pointer;
+    letter-spacing:0.5px;
+    box-shadow:0 4px 15px rgba(230,126,34,0.35);
+    transition:all 0.2s;
+  }
+  .btn-primary:active{transform:scale(0.97);}
+  .btn-secondary{
+    background:transparent;
+    color:#e67e22;
+    border:2px solid #e67e22;
+    border-radius:12px;
+    padding:12px 20px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+  .btn-secondary:active{background:rgba(230,126,34,0.1);}
+  .btn-sm{
+    background:linear-gradient(135deg,#e67e22,#d35400);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:8px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-outline{
+    background:transparent;
+    color:#8fa080;
+    border:1px solid #3a4a38;
+    border-radius:8px;
+    padding:8px 14px;
+    font-size:12px;
+    cursor:pointer;
+  }
+
+  /* BADGES */
+  .badge{
+    background:#e67e22;
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:20px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+  }
+  .badge-green{background:#3d7a3d;}
+  .badge-gray{background:#3a4a38;color:#8fa080;}
+
+  /* STARS */
+  .stars{color:#e67e22;font-size:14px;}
+
+  /* SERVICE CARDS */
+  .service-card{
+    background:linear-gradient(135deg,#1e2a1c,#243020);
+    border:1px solid #2c3e50;
+    border-radius:14px;
+    margin:10px 16px;
+    overflow:hidden;
+  }
+  .service-header{
+    background:linear-gradient(135deg,#2c3e50,#1c2a40);
+    padding:14px 16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .service-body{padding:14px 16px;}
+  .service-icon{font-size:28px;}
+  .service-name{font-size:16px;font-weight:700;color:#fff;}
+  .service-price{font-size:18px;font-weight:800;color:#e67e22;}
+  .service-desc{font-size:13px;color:#8fa080;line-height:1.5;margin-bottom:10px;}
+
+  /* GALLERY */
+  .gallery-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:12px 16px;
+  }
+  .gallery-item{
+    border-radius:12px;
+    overflow:hidden;
+    aspect-ratio:1;
+    position:relative;
+    cursor:pointer;
+  }
+  .gallery-item.tall{grid-row:span 2;aspect-ratio:auto;}
+  .gallery-thumb{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:36px;
+    position:relative;
+  }
+  .gallery-label{
+    position:absolute;
+    bottom:0;left:0;right:0;
+    background:linear-gradient(0deg,rgba(0,0,0,0.7),transparent);
+    padding:8px 10px 6px;
+    font-size:11px;
+    color:#fff;
+    font-weight:600;
+  }
+
+  /* REVIEW CARD */
+  .review-card{
+    background:linear-gradient(135deg,#1e2a1c,#243020);
+    border:1px solid #2c3e50;
+    border-left:4px solid #e67e22;
+    border-radius:14px;
+    margin:10px 16px;
+    padding:16px;
+  }
+  .reviewer{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .avatar{
+    width:40px;height:40px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#2c3e50,#1c2a40);
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;font-weight:700;color:#e67e22;
+    border:2px solid #e67e22;
+    flex-shrink:0;
+  }
+  .reviewer-name{font-weight:700;color:#fff;font-size:14px;}
+  .reviewer-date{font-size:11px;color:#6b7a5e;}
+  .review-text{font-size:13px;color:#a0b090;line-height:1.5;}
+
+  /* BOOKING FORM */
+  .form-group{margin:0 16px 14px;}
+  .form-label{font-size:12px;font-weight:600;color:#8fa080;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;}
+  .form-input{
+    width:100%;
+    background:#1a2318;
+    border:1px solid #2c3e50;
+    border-radius:10px;
+    padding:12px 14px;
+    color:#d4d9cc;
+    font-size:14px;
+    outline:none;
+    transition:border-color 0.2s;
+  }
+  .form-input:focus{border-color:#e67e22;}
+  .form-row{display:flex;gap:10px;margin:0 16px 14px;}
+  .form-row .form-group{margin:0;flex:1;}
+  select.form-input{-webkit-appearance:none;appearance:none;}
+
+  /* DATE PICKER PILLS */
+  .date-pills{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none;}
+  .date-pills::-webkit-scrollbar{display:none;}
+  .date-pill{
+    flex-shrink:0;
+    background:#1a2318;
+    border:1px solid #2c3e50;
+    border-radius:10px;
+    padding:8px 14px;
+    text-align:center;
+    cursor:pointer;
+    transition:all 0.2s;
+  }
+  .date-pill.active,.date-pill:active{background:#e67e22;border-color:#e67e22;}
+  .date-pill .day{font-size:10px;color:#6b7a5e;text-transform:uppercase;}
+  .date-pill .date{font-size:16px;font-weight:700;color:#fff;margin:2px 0;}
+  .date-pill.active .day,.date-pill.active .date,.date-pill:active .day,.date-pill:active .date{color:#fff;}
+
+  /* PAYMENT */
+  .payment-method{
+    background:linear-gradient(135deg,#1e2a1c,#243020);
+    border:1px solid #2c3e50;
+    border-radius:12px;
+    padding:14px 16px;
+    margin:8px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+    transition:border-color 0.2s;
+  }
+  .payment-method.selected{border-color:#e67e22;}
+  .payment-icon{font-size:24px;}
+  .payment-name{font-weight:600;color:#fff;font-size:14px;}
+  .payment-detail{font-size:12px;color:#6b7a5e;}
+  .radio-dot{
+    width:18px;height:18px;
+    border-radius:50%;
+    border:2px solid #3a4a38;
+    margin-left:auto;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .radio-dot.on{border-color:#e67e22;}
+  .radio-dot.on::after{content:'';width:8px;height:8px;background:#e67e22;border-radius:50%;}
+
+  /* MAP */
+  .map-box{
+    margin:12px 16px;
+    border-radius:14px;
+    overflow:hidden;
+    border:2px solid #2c3e50;
+    height:220px;
+    background:linear-gradient(135deg,#1a2318,#243020);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    cursor:pointer;
+  }
+  .map-grid{
+    position:absolute;
+    top:0;left:0;right:0;bottom:0;
+    opacity:0.15;
+    background-image:
+      linear-gradient(#8fa080 1px,transparent 1px),
+      linear-gradient(90deg,#8fa080 1px,transparent 1px);
+    background-size:30px 30px;
+  }
+  .map-pin{font-size:48px;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));z-index:1;}
+  .map-road-h{position:absolute;height:3px;background:#2c3e50;left:0;right:0;top:50%;z-index:0;}
+  .map-road-v{position:absolute;width:3px;background:#2c3e50;top:0;bottom:0;left:40%;z-index:0;}
+
+  /* PROFILE */
+  .profile-header{
+    background:linear-gradient(135deg,#1c2a1a,#2c3e50);
+    padding:50px 20px 24px;
+    text-align:center;
+    border-bottom:3px solid #e67e22;
+  }
+  .profile-avatar{
+    width:80px;height:80px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#2c3e50,#1c2a40);
+    display:flex;align-items:center;justify-content:center;
+    font-size:36px;
+    margin:0 auto 12px;
+    border:3px solid #e67e22;
+    box-shadow:0 0 20px rgba(230,126,34,0.3);
+  }
+  .profile-name{font-size:20px;font-weight:800;color:#fff;}
+  .profile-since{font-size:12px;color:#8fa080;margin-top:3px;}
+  .stat-row{display:flex;justify-content:space-around;margin:16px 0 0;}
+  .stat{text-align:center;}
+  .stat-num{font-size:22px;font-weight:800;color:#e67e22;}
+  .stat-lbl{font-size:11px;color:#6b7a5e;text-transform:uppercase;}
+
+  /* SECTION TITLE */
+  .section-title{
+    font-size:13px;
+    font-weight:700;
+    color:#8fa080;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:16px 16px 8px;
+  }
+
+  /* DIVIDER */
+  .divider{height:1px;background:#2c3e50;margin:4px 16px;}
+
+  /* MENU ITEM */
+  .menu-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border-bottom:1px solid #1e2a1c;
+    cursor:pointer;
+  }
+  .menu-item:active{background:rgba(44,62,80,0.3);}
+  .menu-item-icon{font-size:20px;}
+  .menu-item-text{flex:1;}
+  .menu-item-label{font-size:14px;font-weight:600;color:#d4d9cc;}
+  .menu-item-sub{font-size:12px;color:#6b7a5e;}
+  .menu-chevron{color:#3a4a38;font-size:16px;}
+
+  /* SUCCESS SCREEN */
+  .success-box{
+    text-align:center;
+    padding:40px 24px;
+  }
+  .success-icon{font-size:70px;margin-bottom:20px;}
+  .success-title{font-size:24px;font-weight:800;color:#fff;margin-bottom:8px;}
+  .success-sub{font-size:14px;color:#8fa080;line-height:1.6;margin-bottom:30px;}
+
+  /* HOME HERO */
+  .hero{
+    background:linear-gradient(135deg,#1c2a1a 0%,#2c3e50 60%,#1a1f16 100%);
+    padding:50px 20px 28px;
+    border-bottom:3px solid #e67e22;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:'🏗️';
+    position:absolute;
+    right:-10px;top:30px;
+    font-size:90px;
+    opacity:0.12;
+    transform:rotate(-10deg);
+  }
+  .hero-greeting{font-size:13px;color:#8fa080;margin-bottom:4px;}
+  .hero-title{font-size:28px;font-weight:800;color:#fff;line-height:1.2;}
+  .hero-title span{color:#e67e22;}
+  .hero-cta{margin-top:20px;display:flex;gap:10px;}
+  .hero-cta .btn-primary{flex:1;padding:12px;}
+  .hero-cta .btn-secondary{flex:1;padding:12px;}
+
+  /* QUICK STATS */
+  .quick-stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:14px 16px;
+  }
+  .qstat{
+    background:linear-gradient(135deg,#1e2a1c,#243020);
+    border:1px solid #2c3e50;
+    border-radius:12px;
+    padding:14px;
+    text-align:center;
+  }
+  .qstat-num{font-size:24px;font-weight:800;color:#e67e22;}
+  .qstat-lbl{font-size:11px;color:#8fa080;margin-top:3px;}
+
+  /* BOOKING STEP */
+  .step-indicator{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    padding:16px;
+  }
+  .step-dot{
+    width:28px;height:6px;
+    border-radius:3px;
+    background:#2c3e50;
+    transition:background 0.2s;
+  }
+  .step-dot.active{background:#e67e22;}
+
+  .toast{
+    position:fixed;
+    bottom:90px;left:50%;
+    transform:translateX(-50%);
+    background:#e67e22;
+    color:#fff;
+    padding:10px 24px;
+    border-radius:24px;
+    font-size:13px;
+    font-weight:600;
+    z-index:9999;
+    white-space:nowrap;
+    box-shadow:0 4px 20px rgba(230,126,34,0.5);
+    opacity:0;
+    transition:opacity 0.3s;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:#111;}
+  ::-webkit-scrollbar-thumb{background:#2c3e50;border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- TAB BAR -->
+<div class="tabbar">
+  <button class="tab tabon" id="tab-home" onclick="showScreen('screen-home')">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-label">Home</span>
+  </button>
+  <button class="tab" id="tab-services" onclick="showScreen('screen-services')">
+    <span class="tab-icon">🛠️</span>
+    <span class="tab-label">Services</span>
+  </button>
+  <button class="tab" id="tab-booking" onclick="showScreen('screen-booking')">
+    <span class="tab-icon">📅</span>
+    <span class="tab-label">Book</span>
+  </button>
+  <button class="tab" id="tab-gallery" onclick="showScreen('screen-gallery')">
+    <span class="tab-icon">📷</span>
+    <span class="tab-label">Gallery</span>
+  </button>
+  <button class="tab" id="tab-profile" onclick="showScreen('screen-profile')">
+    <span class="tab-icon">👤</span>
+    <span class="tab-label">Profile</span>
+  </button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ===================== HOME SCREEN ===================== -->
+<div class="screen active" id="screen-home">
+  <div class="hero">
+    <div class="hero-greeting">Welcome back, Marcus 👷</div>
+    <div class="hero-title">Build with <span>Verity</span><br>Construction</div>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="showScreen('screen-booking')">Book Now</button>
+      <button class="btn-secondary" onclick="showScreen('screen-services')">Our Work</button>
+    </div>
+  </div>
+
+  <div class="quick-stats">
+    <div class="qstat">
+      <div class="qstat-num">14+</div>
+      <div class="qstat-lbl">Years Experience</div>
+    </div>
+    <div class="qstat">
+      <div class="qstat-num">4.9★</div>
+      <div class="qstat-lbl">Avg. Rating</div>
+    </div>
+    <div class="qstat">
+      <div class="qstat-num">380+</div>
+      <div class="qstat-lbl">Projects Done</div>
+    </div>
+    <div class="qstat">
+      <div class="qstat-num">98%</div>
+      <div class="qstat-lbl">Satisfaction</div>
+    </div>
+  </div>
+
+  <div class="section-title">Your Active Projects</div>
+  <div class="card card-orange" style="cursor:pointer;" onclick="showToast('Project details loading...')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#fff;">Kitchen Renovation</div>
+        <div style="font-size:12px;color:#8fa080;">Est. Completion: Dec 18, 2025</div>
+      </div>
+      <span class="badge badge-green">In Progress</span>
+    </div>
+    <div style="background:#1a1f16;border-radius:8px;height:6px;margin-bottom:8px;overflow:hidden;">
+      <div style="background:linear-gradient(90deg,#e67e22,#d35400);height:100%;width:72%;border-radius:8px;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#8fa080;">
+      <span>Progress: 72%</span>
+      <span>Lead: Jake Torres</span>
+    </div>
+  </div>
+
+  <div class="card" style="cursor:pointer;" onclick="showToast('Project details loading...')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#fff;">Deck Installation</div>
+        <div style="font-size:12px;color:#8fa080;">Scheduled: Jan 05, 2026</div>
+      </div>
+      <span class="badge badge-gray">Scheduled</span>
+    </div>
+    <div style="background:#1a1f16;border-radius:8px;height:6px;margin-bottom:8px;overflow:hidden;">
+      <div style="background:#2c3e50;height:100%;width:15%;border-radius:8px;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#8fa080;">
+      <span>Progress: 15%</span>
+      <span>Lead: Carla Reyes</span>
+    </div>
+  </div>
+
+  <div class="section-title">Quick Access</div>
+  <div class="card" style="padding:8px 8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button style="background:#1a2318;border:1px solid #2c3e50;border-radius:10px;padding:14px 10px;color:#d4d9cc;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;" onclick="showScreen('screen-reviews')">
+        <span style="font-size:22px;">⭐</span>
+        <span style="font-size:12px;font-weight:600;">Reviews</span>
+      </button>
+      <button style="background:#1a2318;border:1px solid #2c3e50;border-radius:10px;padding:14px 10px;color:#d4d9cc;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;" onclick="showScreen('screen-maps')">
+        <span style="font-size:22px;">📍</span>
+        <span style="font-size:12px;font-weight:600;">Find Us</span>
+      </button>
+      <button style="background:#1a2318;border:1px solid #2c3e50;border-radius:10px;padding:14px 10px;color:#d4d9cc;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;" onclick="showScreen('screen-payments')">
+        <span style="font-size:22px;">💳</span>
+        <span style="font-size:12px;font-weight:600;">Payments</span>
+      </button>
+      <button style="background:#1a2318;border:1px solid #2c3e50;border-radius:10px;padding:14px 10px;color:#d4d9cc;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;" onclick="showScreen('screen-gallery')">
+        <span style="font-size:22px;">📷</span>
+        <span style="font-size:12px;font-weight:600;">Gallery</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="section-title">Latest Review</div>
+  <div class="review-card" style="cursor:pointer;" onclick="showScreen('screen-reviews')">
+    <div class="reviewer">
+      <div class="avatar">S</div>
+      <div>
+        <div class="reviewer-name">Sandra M.</div>
+        <div class="stars">★★★★★</div>
+      </div>
+    </div>
+    <div class="review-text">"Verity completely transformed our basement. The crew was professional, on time, and the finish quality is outstanding. Highly recommend!"</div>
+  </div>
+
+  <div style="padding:0 16px 16px;">
+    <button class="btn-secondary" style="width:100%;" onclick="showScreen('screen-reviews')">View All Reviews →</button>
+  </div>
+</div>
+
+<!-- ===================== SERVICES SCREEN ===================== -->
+<div class="screen" id="screen-services">
+  <div class="header-sub">
+    <div class="wordmark">Verity <span>Build</span></div>
+    <div class="page-title" style="margin-top:8px;">Our Services</div>
+    <div class="page-sub">Professional construction & renovation</div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-header">
+      <div>
+        <div class="service-icon">🏠</div>
+        <div class="service-name">Home Renovation</div>
+      </div>
+      <div>
+        <div class="service-price">From $4,500</div>
+        <span class="badge">Most Popular</span>
+      </div>
+    </div>
+    <div class="service-body">
+      <div class="service-desc">Full interior & exterior renovations. Kitchen, bathrooms, living spaces — built to code and finished to perfection.</div>
+      <button class="btn-sm" onclick="showScreen('screen-booking')">Book This Service</button>
+    </div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-header">
+      <div>
+        <div class="service-icon">🏗️</div>
+        <div class="service-name">New Construction</div>
+      </div>
+      <div>
+        <div class="service-price">Custom Quote</div>
+        <span class="badge badge-gray">Premium</span>
+      </div>
+    </div>
+    <div class="service-body">
+      <div class="service-desc">Ground-up residential and commercial builds. We manage everything from foundation to final walkthrough.</div>
+      <button class="btn-sm" onclick="showScreen('screen-booking')">Request Quote</button>
+    </div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-header">
+      <div>
+        <div class="service-icon">🪟</div>
+        <div class="service-name">Windows & Doors</div>
+      </div>
+      <div>
+        <div class="service-price">From $800</div>
+        <span class="badge badge-green">Quick Job</span>
+      </div>
+    </div>
+    <div class="service-body">
+      <div class="service-desc">Energy-efficient window installation and custom door fitting. All brands and styles available.</div>
+      <button class="btn-sm" onclick="showScreen('screen-booking')">Book This Service</button>
+    </div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-header">
+      <div>
+        <div class="service-icon">🔧</div>
+        <div class="service-name">Repairs & Maintenance</div>
+      </div>
+      <div>
+        <div class="service-price">From $150/hr</div>
+        <span class="badge badge-gray">On Demand</span>
+      </div>
+    </div>
+    <div class="service-body">
+      <div class="service-desc">Structural repairs, drywall, plumbing rough-in, electrical prep. Fast response for urgent issues.</div>
+      <button class="btn-sm" onclick="showScreen('screen-booking')">Book This Service</button>
+    </div>
+  </div>
+
+  <div class="service-card">
+    <div class="service-header">
+      <div>
+        <div class="service-icon">🌿</div>
+        <div class="service-name">Outdoor & Landscaping</div>
+      </div>
+      <div>
+        <div class="service-price">From $2,200</div>
+        <span class="badge badge-green">Seasonal</span>
+      </div>
+    </div>
+    <div class="service-body">
+      <div class="service-desc">Decks, patios, retaining walls, driveways, and full yard builds. Transform your outdoor living space.</div>
+      <button class="btn-sm" onclick="showScreen('screen-booking')">Book This Service</button>
+    </div>
+  </div>
+
+  <div style="padding:16px;">
+    <button class="btn-primary" onclick="showScreen('screen-booking')">📅 Schedule Free Consultation</button>
+  </div>
+</div>
+
+<!-- ===================== BOOKING SCREEN ===================== -->
+<div class="screen" id="screen-booking">
+  <div class="header-sub">
+    <div class="wordmark">Verity <span>Build</span></div>
+    <div class="page-title" style="margin-top:8px;">Book a Service</div>
+    <div class="page-sub">Schedule your consultation or job start</div>
+  </div>
+
+  <div class="step-indicator">
+    <div class="step-dot active"></div>
+    <div class="step-dot active"></div>
+    <div class="step-dot"></div>
+  </div>
+
+  <div class="section-title">Select a Service</div>
+  <div class="form-group">
+    <select class="form-input">
+      <option>🏠 Home Renovation</option>
+      <option>🏗️ New Construction</option>
+      <option>🪟 Windows & Doors</option>
+      <option>🔧 Repairs & Maintenance</option>
+      <option>🌿 Outdoor & Landscaping</option>
+    </select>
+  </div>
+
+  <div class="section-title">Choose a Date</div>
+  <div style="padding:0 16px;">
+    <div class="date-pills">
+      <div class="date-pill active" onclick="selectDate(this)">
+        <div class="day">Mon</div>
+        <div class="date">15</div>
+        <div class="day">Dec</div>
+      </div>
+      <div class="date-pill" onclick="selectDate(this)">
+        <div class="day">Tue</div>
+        <div class="date">16</div>
+        <div class="day">Dec</div>
+      </div>
+      <div class="date-pill" onclick="selectDate(this)">
+        <div class="day">Wed</div>
+        <div class="date">17</div>
+        <div class="day">Dec</div>
+      </div>
+      <div class="date-pill" onclick="selectDate(this)">
+        <div class="day">Thu</div>
+        <div class="date">18</div>
+        <div class="day">Dec</div>
+      </div>
+      <div class="date-pill" onclick="selectDate(this)">
+        <div class="day">Fri</div>
+        <div class="date">19</div>
+        <div class="day">Dec</div>
+      </div>
+      <div class="date-pill" onclick="selectDate(this)">
+        <div class="day">Mon</div>
+        <div class="date">22</div>
+        <div class="day">Dec</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Select Time Slot</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 4px;">
+    <button class="btn-outline" style="border-color:#e67e22;color:#e67e22;" onclick="selectTime(this)">8:00 AM</button>
+    <button class="btn-outline" onclick="selectTime(this)">10:00 AM</button>
+    <button class="btn-outline" onclick="selectTime(this)">12:00 PM</button>
+    <button class="btn-outline" onclick="selectTime(this)">2:00 PM</button>
+    <button class="btn-outline" onclick="selectTime(this)">4:00 PM</button>
+  </div>
+
+  <div class="section-title">Your Details</div>
+  <div class="form-group">
+    <label class="form-label">Full Name</label>
+    <input type="text" class="form-input" placeholder="Marcus Johnson">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Phone Number</label>
+    <input type="tel" class="form-input" placeholder="+1 (555) 000-0000">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Project Address</label>
+    <input type="text" class="form-input" placeholder="123 Oak Street, Austin TX">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Project Notes</label>
+    <textarea class="form-input" rows="3" style="resize:none;" placeholder="Describe your project or any special requirements..."></textarea>
+  </div>
+
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:12px;color:#8fa080;">Consultation Fee</div>
+      <div style="font-size:20px;font-weight:800;color:#e67e22;">FREE</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:12px;color:#8fa080;">Selected</div>
+      <div style="font-size:14px;font-weight:600;color:#fff;">Mon Dec 15 · 8:00 AM</div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 16px;">
+    <button class="btn-primary" onclick="showScreen('screen-confirm')">Confirm Booking →</button>
+  </div>
+</div>
+
+<!-- ===================== CONFIRM SCREEN ===================== -->
+<div class="screen" id="screen-confirm">
+  <div class="header-sub">
+    <div class="wordmark">Verity <span>Build</span></div>
+    <div class="page-title" style="margin-top:8px;">Booking Confirmed</div>
+  </div>
+  <div class="success-box">
+    <div class="success-icon">✅</div>
+    <div class="success-title">You're Booked!</div>
+    <div class="success-sub">Your consultation has been scheduled. Our team lead will contact you within 24 hours to confirm details and discuss your project scope.</div>
+    <div class="card" style="text-align:left;margin:0 0 20px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <span style="color:#8fa080;font-size:13px;">Service</span>
+        <span style="color:#fff;font-size:13px;font-weight:600;">Home Renovation</span>
+      </div>
+      <div class="divider" style="margin:8px 0;"></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+        <span style="color:#8fa080;font-size:13px;">Date & Time</span>
+        <span style="color:#fff;font-size:13px;font-weight:600;">Dec 15 · 8:00 AM</span>
+      </div>
+      <div class="divider" style="margin:8px 0;"></div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:#8fa080;font-size:13px;">Booking Ref</span>
+        <span style="color:#e67e22;font-size:13px;font-weight:700;">#VC-20251215</span>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="showScreen('screen-home')">Back to Home</button>
+    <div style="margin-top:12px;">
+      <button class="btn-secondary" onclick="showScreen('screen-payments')">Make a Deposit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== GALLERY SCREEN ===================== -->
+<div class="screen" id="screen-gallery">
+  <div class="header-sub">
+    <div class="wordmark">Verity <span>Build</span></div>
+    <div class="page-title" style="margin-top:8px;">Project Gallery</div>
+    <div class="page-sub">Our completed & ongoing work</div>
+  </div>
+
+  <div style="display:flex;gap:8px;padding:12px 16px 4px;overflow-x:auto;scrollbar-width:none;">
+    <button class="btn-sm" style="flex-shrink:0;" onclick="showToast('Filter: All')">All</button>
+    <button class="btn-outline" style="flex-shrink:0;" onclick="showToast('Filter: Renovations')">Renovations</button>
+    <button class="btn-outline" style="flex-shrink:0;" onclick="showToast('Filter: New Builds')">New Builds</button>
+    <button class="btn-outline" style="flex-shrink:0;" onclick="showToast('Filter: Outdoor')">Outdoor</button>
+  </div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item tall" style="background:linear-gradient(135deg,#1c2a1a,#2c3e50);min-height:280px;cursor:pointer;" onclick="showToast('Kitchen Renovation — Austin TX')">
+      <div class="gallery-thumb" style="min-height:280px;">🍳</div>
+      <div class="gallery-label">Kitchen Reno<br>Austin, TX</div>
+    </div>
+    <div class="gallery-item" style="background:linear-gradient(135deg,#243020,#1c2a40);cursor:pointer;" onclick="showToast('Master Bath — Cedar Park TX')">
+      <div class="gallery-thumb">🛁</div>
+      <div class="gallery-label">Master Bath</div>
+    </div>
+    <div class="gallery-item" style="background:linear-gradient(135deg,#1a2318,#2c3e50);cursor:pointer;" onclick="showToast('Deck Build — Round Rock TX')">
+      <div class="gallery-thumb">🌿</div>
+      <div class="gallery-label">Deck Build</div>
+    </div>
+    <div class="gallery-item tall" style="background:linear-gradient(135deg,#2c3e50,#243020);min-height:280px;cursor:pointer;" onclick="showToast('Custom Home — Georgetown TX')">
+      <div class="gallery-thumb" style="min-height:280px;">🏠</div>
+      <div class="gallery-label">Custom Home<br>Georgetown, TX</div>
+    </div>
+    <div class="gallery-item" style="background:linear-gradient(135deg,#1e2a1c,#2c3e50);cursor:pointer;" onclick="showToast('Office Build-Out — Austin TX')">
+      <div class="gallery-thumb">🏢</div>
+      <div class="gallery-label">Office Build</div>
+    </div>
+    <div class="gallery-item" style="background:linear-gradient(135deg,#243020,#1a2318);cursor:pointer;" onclick="showToast('Garage Conversion — Pflugerville TX')">
+      <div class="gallery-thumb">🚪</div>
+      <div class="gallery-label">Garage Convert</div>
+    </div>
+    <div class="gallery-item" style="background:linear-gradient(135deg,#2c3e50,#1e2a1c);cursor:pointer;" onclick="showToast('Patio & Firepit — Buda TX')">
+      <div class="gallery-thumb">🔥</div>
+      <div class="gallery-label">Patio & Firepit</div>
+    </div>
+    <div class="gallery-item" style="background:linear-gradient(135deg,#1a2318,#243020);cursor:pointer;" onclick="showToast('Window Install — Kyle TX')">
+      <div class="gallery-thumb">🪟</div>
+      <div class="gallery-label">Window Install</div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 16px;">
+    <button class="btn-secondary" style="width:100%;" onclick="showScreen('screen-booking')">📅 Start Your Project</button>
+  </div>
+</div>
+
+<!-- ===================== PROFILE SCREEN ===================== -->
+<div class="screen" id="screen-profile">
+  <div class="profile-header">
+    <div class="profile-avatar">👷</div>
+    <div class="profile-name">Marcus Johnson</div>
+    <div class="profile-since">Member since March 2023 · Austin, TX</div>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-num">3</div>
+        <div class="stat-lbl">Projects</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">$28k</div>
+        <div class="stat-lbl">Invested</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">⭐ 5</div>
+        <div class="stat-lbl">Ratings Given</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Account</div>
+  <div class="menu-item" onclick="showToast('Edit Profile opened')">
+    <span class="menu-item-icon">✏️</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">Edit Profile</div>
+      <div class="menu-item-sub">Name, phone, address</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+  <div class="menu-item" onclick="showScreen('screen-payments')">
+    <span class="menu-item-icon">💳</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">Payment Methods</div>
+      <div class="menu-item-sub">Manage cards & billing</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+  <div class="menu-item" onclick="showScreen('screen-booking')">
+    <span class="menu-item-icon">📅</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">My Bookings</div>
+      <div class="menu-item-sub">2 active, 1 completed</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+
+  <div class="section-title">Support</div>
+  <div class="menu-item" onclick="showScreen('screen-maps')">
+    <span class="menu-item-icon">📍</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">Office Location</div>
+      <div class="menu-item-sub">Find us on the map</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+  <div class="menu-item" onclick="showScreen('screen-reviews')">
+    <span class="menu-item-icon">⭐</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">Leave a Review</div>
+      <div class="menu-item-sub">Share your experience</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+  <div class="menu-item" onclick="showToast('Calling Verity Construction...')">
+    <span class="menu-item-icon">📞</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">Contact Us</div>
+      <div class="menu-item-sub">(512) 884-0220</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+
+  <div class="section-title">Preferences</div>
+  <div class="menu-item" onclick="showToast('Notifications settings opened')">
+    <span class="menu-item-icon">🔔</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">Notifications</div>
+      <div class="menu-item-sub">Push alerts enabled</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+  <div class="menu-item" onclick="showToast('Sign out initiated...')">
+    <span class="menu-item-icon">🚪</span>
+    <div class="menu-item-text">
+      <div class="menu-item-label">Sign Out</div>
+      <div class="menu-item-sub">marcus@email.com</div>
+    </div>
+    <span class="menu-chevron">›</span>
+  </div>
+
+  <div style="padding:16px;text-align:center;">
+    <div style="font-size:11px;color:#3a4a38;">Verity Build v2.4.1 · © 2025 Verity Construction</div>
+  </div>
+</div>
+
+<!-- ===================== REVIEWS SCREEN ===================== -->
+<div class="screen" id="screen-reviews">
+  <div class="header-sub">
+    <div class="wordmark">Verity <span>Build</span></div>
+    <div class="page-title" style="margin-top:8px;">Reviews & Ratings</div>
+    <div class="page-sub">What our clients say</div>
+  </div>
+
+  <div class="card" style="text-align:center;padding:20px;">
+    <div style="font-size:48px;font-weight:900;color:#e67e22;">4.9</div>
+    <div class="stars" style="font-size:22px;margin:6px 0;">★★★★★</div>
+    <div style="font-size:13px;color:#8fa080;">Based on 214 verified reviews</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:14px;text-align:left;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:#8fa080;width:16px;">5</span>
+        <div style="flex:1;background:#1a1f16;border-radius:4px;height:6px;overflow:hidden;">
+          <div style="background:#e67e22;width:88%;height:100%;border-radius:4px;"></div>
+        </div>
+        <span style="font-size:11px;color:#6b7a5e;">88%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:#8fa080;width:16px;">4</span>
+        <div style="flex:1;background:#1a1f16;border-radius:4px;height:6px;overflow:hidden;">
+          <div style="background:#d35400;width:9%;height:100%;border-radius:4px;"></div>
+        </div>
+        <span style="font-size:11px;color:#6b7a5e;">9%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:#8fa080;width:16px;">3</span>
+        <div style="flex:1;background:#1a1f16;border-radius:4px;height:6px;overflow:hidden;">
+          <div style="background:#2c3e50;width:3%;height:100%;border-radius:4px;"></div>
+        </div>
+        <span style="font-size:11px;color:#6b7a5e;">3%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="review-card">
+    <div class="reviewer">
+      <div class="avatar">S</div>
+      <div>
+        <div class="reviewer-name">Sandra M.</div>
+        <div class="reviewer-date">November 28, 2025</div>
+      </div>
+      <div class="stars" style="margin-left:auto;">★★★★★</div>
+    </div>
+    <div class="review-text">"Verity completely transformed our basement. The crew was professional, on time, and the finish quality is outstanding. Would 100% hire again!"</div>
+    <div style="margin-top:10px;"><span class="badge badge-green">Basement Remodel</span></div>
+  </div>
+
+  <div class="review-card">
+    <div class="reviewer">
+      <div class="avatar">R</div>
+      <div>
+        <div class="reviewer-name">Ray & Tina Delgado</div>
+        <div class="reviewer-date">October 15, 2025</div>
+      </div>
+      <div class="stars" style="margin-left:auto;">★★★★★</div>
+    </div>
+    <div class="review-text">"Our custom deck came out even better than the design plans. Solid craftsmanship, fair pricing, and they cleaned up perfectly every day."</div>
+    <div style="margin-top:10px;"><span class="badge badge-green">Outdoor Deck</span></div>
+  </div>
+
+  <div class="review-card">
+    <div class="reviewer">
+      <div class="avatar">C</div>
+      <div>
+        <div class="reviewer-name">Christina H.</div>
+        <div class="reviewer-date">September 3, 2025</div>
+      </div>
+      <div class="stars" style="margin-left:auto;">★★★★★</div>
+    </div>
+    <div class="review-text">"From first quote to final inspection, Verity was transparent and responsive. The kitchen reno was finished 2 days early. Incredible team."</div>
+    <div style="margin-top:10px;"><span class="badge badge-green">Kitchen Reno</span></div>
+  </div>
+
+  <div class="review-card">
+    <div class="reviewer">
+      <div class="avatar">J</div>
+      <div>
+        <div class="reviewer-name">James T.</div>
+        <div class="reviewer-date">August 20, 2025</div>
+      </div>
+      <div class="stars" style="margin-left:auto;">★★★★☆</div>
+    </div>
+    <div class="review-text">"Great build quality on our addition. Minor scheduling hiccup early on but the project manager resolved it quickly. Very happy with the result."</div>
+    <div style="margin-top:10px;"><span class="badge badge-gray">Room Addition</span></div>
+  </div>
+
+  <div class="section-title">Leave Your Review</div>
+  <div class="form-group">
+    <label class="form-label">Your Rating</label>
+    <div style="display:flex;gap:8px;font-size:28px;">
+      <span style="cursor:pointer;color:#e67e22;" onclick="showToast('5 stars selected!')">★</span>
+      <span style="cursor:pointer;color:#e67e22;" onclick="showToast('5 stars selected!')">★</span>
+      <span style="cursor:pointer;color:#e67e22;" onclick="showToast('5 stars selected!')">★</span>
+      <span style="cursor:pointer;color:#e67e22;" onclick="showToast('5 stars selected!')">★</span>
+      <span style="cursor:pointer;color:#3a4a38;" onclick="showToast('4 stars selected!')">★</span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Your Review</label>
+    <textarea class="form-input" rows="3" style="resize:none;" placeholder="Tell us about your experience..."></textarea>
+  </div>
+  <div style="padding:0 16px 16px;">
+    <button class="btn-primary" onclick="showToast('Review submitted! Thank you ⭐')">Submit Review</button>
+  </div>
+</div>
+
+<!-- ===================== PAYMENTS SCREEN ===================== -->
+<div class="screen" id="screen-payments">
+  <div class="header-sub">
+    <div class="wordmark">Verity <span>Build</span></div>
+    <div class="page-title" style="margin-top:8px;">Payments</div>
+    <div class="page-sub">Secure billing & invoices</div>
+  </div>
+
+  <div class="section-title">Outstanding Balance</div>
+  <div class="card card-orange" style="text-align:center;padding:24px;">
+    <div style="font-size:13px;color:#8fa080;margin-bottom:6px;">Kitchen Renovation — Invoice #2409</div>
+    <div style="font-size:40px;font-weight:900;color:#fff;">$3,200</div>
+    <div style="font-size:12px;color:#e67e22;margin:6px 0 16px;">Due Dec 20, 2025</div>
+    <button class="btn-primary" onclick="showToast('Payment processed! ✅')">Pay Now</button>
+  </div>
+
+  <div class="section-title">Payment Method</div>
+  <div class="payment-method selected" onclick="showToast('Visa selected')">
+    <span class="payment-icon">💳</span>
+    <div>
+      <div class="payment-name">Visa •••• 4291</div>
+      <div class="payment-detail">Expires 08/27</div>
+    </div>
+    <div class="radio-dot on"></div>
+  </div>
+  <div class="payment-method" onclick="showToast('Apple Pay selected')">
+    <span class="payment-icon">🍎</span>
+    <div>
+      <div class="payment-name">Apple Pay</div>
+      <div class="payment-detail">Touch ID enabled</div>
+    </div>
+    <div class="radio-dot"></div>
+  </div>
+  <div class="payment-method" onclick="showToast('Bank Transfer selected')">
+    <span class="payment-icon">🏦</span>
+    <div>
+      <div class="payment-name">Bank Transfer (ACH)</div>
+      <div class="payment-detail">Chase ••••7834</div>
+    </div>
+    <div class="radio-dot"></div>
+  </div>
+  <div style="padding:6px 16px 4px;">
+    <button class="btn-outline" style="width:100%;" onclick="showToast('Add payment method...')">+ Add Payment Method</button>
+  </div>
+
+  <div class="section-title">Payment History</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid #2c3e50;margin-bottom:12px;">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#fff;">Deck Installation Deposit</div>
+        <div style="font-size:12px;color:#6b7a5e;">Nov 1, 2025</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:15px;font-weight:700;color:#3d7a3d;">-$1,100</div>
+        <span class="badge badge-green" style="font-size:9px;">Paid</span>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid #2c3e50;margin-bottom:12px;">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#fff;">Kitchen Reno Phase 1</div>
+        <div style="font-size:12px;color:#6b7a5e;">Oct 15, 2025</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:15px;font-weight:700;color:#3d7a3d;">-$4,500</div>
+        <span class="badge badge-green" style="font-size:9px;">Paid</span>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:#fff;">Initial Consultation</div>
+        <div style="font-size:12px;color:#6b7a5e;">Mar 22, 2025</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:15px;font-weight:700;color:#8fa080;">FREE</div>
+        <span class="badge badge-green" style="font-size:9px;">Paid</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 16px;">
+    <button class="btn-secondary" style="width:100%;" onclick="showToast('Downloading invoice PDF...')">📄 Download Invoice</button>
+  </div>
+</div>
+
+<!-- ===================== MAPS SCREEN ===================== -->
+<div class="screen" id="screen-maps">
+  <div class="header-sub">
+    <div class="wordmark">Verity <span>Build</span></div>
+    <div class="page-title" style="margin-top:8px;">Find Us</div>
+    <div class="page-sub">Office & showroom location</div>
+  </div>
+
+  <div class="map-box" onclick="showToast('Opening in Maps...')">
+    <div class="map-grid"></div>
+    <div class="map-road-h"></div>
+    <div class="map-road-v"></div>
+    <div class="map-pin">📍</div>
+  </div>
+
+  <div class="card card-orange">
+    <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:8px;">🏢 Verity Construction HQ</div>
+    <div style="font-size:14px;color:#d4d9cc;margin-bottom:4px;">4820 Mueller Blvd, Suite 200</div>
+    <div style="font-size:14px;color:#d4d9cc;margin-bottom:12px;">Austin, Texas 78723</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-sm" style="flex:1;" onclick="showToast('Opening Google Maps...')">🗺️ Directions</button>
+      <button class="btn-sm" style="flex:1;background:linear-gradient(135deg,#2c3e50,#1c2a40);" onclick="showToast('Calling office...')">📞 Call Us</button>
+    </div>
+  </div>
+
+  <div class="section-title">Hours of Operation</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #2c3e50;margin-bottom:10px;">
+      <span style="color:#fff;font-weight:600;">Monday – Friday</span>
+      <span style="color:#e67e22;font-weight:600;">7:00 AM – 6:00 PM</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #2c3e50;margin-bottom:10px;">
+      <span style="color:#fff;font-weight:600;">Saturday</span>
+      <span style="color:#e67e22;font-weight:600;">8:00 AM – 3:00 PM</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;">
+      <span style="color:#8fa080;">Sunday</span>
+      <span style="color:#6b7a5e;">Closed</span>
+    </div>
+  </div>
+
+  <div class="section-title">Contact Info</div>
+  <div class="card">
+    <div class="menu-item" style="padding:10px 0;border-bottom:1px solid #2c3e50;" onclick="showToast('Calling (512) 884-0220...')">
+      <span class="menu-item-icon">📞</span>
+      <div class="menu-item-text">
+        <div class="menu-item-label">(512) 884-0220</div>
+        <div class="menu-item-sub">Main office line</div>
+      </div>
+    </div>
+    <div class="menu-item" style="padding:10px 0;border-bottom:1px solid #2c3e50;" onclick="showToast('Emailing info@verityconstruction.com...')">
+      <span class="menu-item-icon">📧</span>
+      <div class="menu-item-text">
+        <div class="menu-item-label">info@verityconstruction.com</div>
+        <div class="menu-item-sub">General inquiries</div>
+      </div>
+    </div>
+    <div class="menu-item" style="padding:10px 0;" onclick="showToast('Opening website...')">
+      <span class="menu-item-icon">🌐</span>
+      <div class="menu-item-text">
+        <div class="menu-item-label">www.verityconstruction.com</div>
+        <div class="menu-item-sub">Visit our website</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 16px 16px;">
+    <button class="btn-primary" onclick="showScreen('screen-booking')">📅 Book a Site Visit</button>
+  </div>
+</div>
+
+<script>
+function showScreen(id){
+  var s=document.querySelectorAll('.screen');
+  for(var i=0;i<s.length;i++){s[i].classList.remove('active');}
+  var el=document.getElementById(id);
+  if(el){el.classList.add('active');}
+  var t=document.querySelectorAll('.tab');
+  for(var j=0;j<t.length;j++){t[j].classList.remove('tabon');}
+  var bt=document.getElementById('tab-'+id.replace('screen-',''));
+  if(bt){bt.classList.add('tabon');}
+  window.scrollTo(0,0);
+}
+
+function selectDate(el){
+  var pills=document.querySelectorAll('.date-pill');
+  for(var i=0;i<pills.length;i++){pills[i].classList.remove('active');}
+  el.classList.add('active');
+}
+
+function selectTime(el){
+  var btns=el.parentElement.querySelectorAll('button');
+  for(var i=0;i<btns.length;i++){
+    btns[i].style.borderColor='';
+    btns[i].style.color='';
+  }
+  el.style.borderColor='#e67e22';
+  el.style.color='#e67e22';
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2200);
+}
+</script>
+<style>.screen{display:none!important}.screen.active{display:block!important}.tab.tabon{opacity:1!important;filter:brightness(1.4)}</style>
+<script>
+(function(){
+  function showScreen(id){
+    if(id && id.indexOf('screen-')!==0){id='screen-'+id;}
+    var s=document.querySelectorAll('.screen');
+    for(var i=0;i<s.length;i++){s[i].classList.remove('active');}
+    var el=document.getElementById(id)||document.querySelector('.screen[data-screen="'+id.replace('screen-','')+'"]');
+    if(el){el.classList.add('active');}
+    var t=document.querySelectorAll('.tab');
+    for(var j=0;j<t.length;j++){t[j].classList.remove('tabon');}
+    var bt=document.getElementById('tab-'+id.replace('screen-',''));
+    if(bt){bt.classList.add('tabon');}
+    window.scrollTo(0,0);
+  }
+  window.showScreen=showScreen;
+  document.addEventListener('DOMContentLoaded',function(){
+    // Make sure at least one screen is visible on load.
+    var screens=document.querySelectorAll('.screen');
+    if(screens.length){
+      var anyActive=document.querySelector('.screen.active');
+      if(!anyActive){screens[0].classList.add('active');}
+    }
+    // Backup: wire any element that references showScreen via data-nav too.
+    var navs=document.querySelectorAll('[data-nav]');
+    for(var k=0;k<navs.length;k++){
+      (function(n){n.addEventListener('click',function(){showScreen(n.getAttribute('data-nav'));});})(navs[k]);
+    }
+  });
+})();
+</script></body>
+</html>
